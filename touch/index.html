@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Frankenstein Translator</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      let creatures = [];
+
+      const stages = [
+        ["I am human.", "The translator remembers.", "We speak."],
+
+        ["Ich am human.", "The Übersetzer remembers.", "We sprechen."],
+
+        ["Ich bin human.", "Der Übersetzer remembers.", "Wir sprechen."],
+
+        [
+          "나는 human again.",
+          "Der Übersetzer 기억 memory.",
+          "Wir 기억 language.",
+        ],
+
+        [
+          "나는 human wird reborn.",
+          "Der machine 기억 fragments.",
+          "Wir becoming Maschine.",
+        ],
+
+        ["TRANSLATION CORRUPTED", "LANGUAGE UNSTABLE", "NEW CREATURE CREATED"],
+      ];
+
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        textFont("Courier New");
+        textAlign(CENTER, CENTER);
+      }
+
+      function draw() {
+        background(0);
+
+        for (let c of creatures) {
+          updateCreature(c);
+          drawCreature(c);
+        }
+      }
+
+      function updateCreature(c) {
+        c.alpha = lerp(c.alpha, c.targetAlpha, 0.05);
+
+        c.currentY = lerp(c.currentY, c.targetY, 0.03);
+      }
+
+      function drawCreature(c) {
+        let txt = stages[c.stage][c.variant];
+
+        push();
+
+        translate(c.x, c.currentY);
+
+        let glowAlpha = c.alpha * 0.15;
+
+        fill(120, 255, 170, glowAlpha);
+
+        textSize(42);
+        text(txt, 0, 0);
+
+        fill(180, 255, 200, c.alpha);
+
+        textSize(36);
+
+        text(glitchText(txt, c), 0, 0);
+
+        pop();
+      }
+
+      function glitchText(txt, c) {
+        if (c.stage < 3) {
+          return txt;
+        }
+
+        if (frameCount % 40 !== 0) {
+          return txt;
+        }
+
+        let chars = txt.split("");
+
+        let randomIndex = floor(random(chars.length));
+
+        chars[randomIndex] = random(["█", "▓", "░", "_", "#"]);
+
+        return chars.join("");
+      }
+
+      function findNearby(x, y) {
+        for (let c of creatures) {
+          let d = dist(x, y, c.x, c.y);
+
+          if (d < 120) {
+            return c;
+          }
+        }
+
+        return null;
+      }
+
+      function createOrMutate(x, y) {
+        let existing = findNearby(x, y);
+
+        if (existing) {
+          existing.stage++;
+
+          if (existing.stage >= stages.length) {
+            existing.stage = 0;
+
+            existing.variant = floor(random(3));
+          }
+        } else {
+          creatures.push({
+            x: x,
+            y: y,
+
+            currentY: y + 20,
+            targetY: y,
+
+            alpha: 0,
+            targetAlpha: 255,
+
+            stage: 0,
+
+            variant: floor(random(3)),
+          });
+        }
+      }
+
+      function mousePressed() {
+        createOrMutate(mouseX, mouseY);
+      }
+
+      function touchStarted() {
+        createOrMutate(touchX, touchY);
+
+        return false;
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+    </script>
+  </body>
+</html>
